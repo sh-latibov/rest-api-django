@@ -1,26 +1,24 @@
-from django.forms import model_to_dict
 from rest_framework import generics
-from django.shortcuts import render
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
-from .models import Car
-from .serializers import CarSerializer
+from cars.models import Car
+from cars.permissions import IsAdminOrReadOnly
+from cars.serializers import CarSerializer
 
 
-class CarsAPIView(APIView):
-    def get(self, request):
-        w = Car.objects.all()
-        return Response({'posts': CarSerializer(w, many=True).data})
+class CarAPIList(generics.ListCreateAPIView):
+    queryset = Car.objects.all()
+    serializer_class = CarSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def post(self, request):
-        serializer = CarSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
 
-        post_new = Car.objects.create(
-            name=request.data['name'],
-            description=request.data['description'],
-            cat_id=request.data['cat_id']
-        )
+class CarAPIUpdate(generics.RetrieveUpdateAPIView):
+    queryset = Car.objects.all()
+    serializer_class = CarSerializer
+    permission_classes = (IsAuthenticated,)
 
-        return Response({'post': CarSerializer(post_new).data})
+
+class CarAPIDestroy(generics.RetrieveDestroyAPIView):
+    queryset = Car.objects.all()
+    serializer_class = CarSerializer
+    permission_classes = (IsAdminOrReadOnly,)
